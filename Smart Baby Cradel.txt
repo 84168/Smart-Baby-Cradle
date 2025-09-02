@@ -1,0 +1,72 @@
+#include <ESP32Servo.h>
+#include <WiFi.h>
+
+
+#define BLYNK_TEMPLATE_ID "TMPL3CAThY26P"
+#define BLYNK_TEMPLATE_NAME "Smart Baby Cradle"
+#define BLYNK_AUTH_TOKEN "6nB4tjFL25YX7XkTv7ShM9ERd204Ro_z"
+
+#include <BlynkSimpleEsp32.h>  // Include AFTER defining template details
+
+
+char ssid[] = "POCO M3 Pro 5G";  
+char pass[] = "11419821";  
+
+// Define pins
+#define SOUND_SENSOR 34  
+#define SERVO_PIN 2      
+
+int soundThreshold = 1163; 
+
+Servo servoMotor; 
+
+BlynkTimer timer;  // Create a timer for Blynk
+
+void setup() {
+    Serial.begin(115200);
+    
+    // Connect to WiFi & Blynk (New Blynk 2.0 format)
+    Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+
+    servoMotor.attach(SERVO_PIN);
+    pinMode(SOUND_SENSOR, INPUT);
+
+    Serial.println("✅ Sound Sensor & Servo Ready");
+
+
+    timer.setInterval(1000L, checkSound);
+}
+
+void loop() {
+    Blynk.run();
+    timer.run();
+}
+
+// Function to check sound levels
+void checkSound() {
+    int soundValue = analogRead(SOUND_SENSOR);
+    Serial.print("Sound Value: "); Serial.println(soundValue);
+    
+    // Send sound value to Blynk app
+    Blynk.virtualWrite(V1, soundValue);  // Send data to Virtual Pin V1
+
+    if (soundValue > soundThreshold) {
+        Serial.println("👶 Baby Cry Detected! Moving Cradle...");
+        Blynk.virtualWrite(V2, "Baby Cry Detected!"); 
+        Blynk.logEvent("baby_notification", "👶 Baby Cry Detected! Moving Cradle..."); // Send push notification
+        moveCradle();
+    }
+}
+
+// Function to move servo motor
+void moveCradle() {
+    servoMotor.write(90);  
+    delay(2000);            
+    servoMotor.write(0);    
+}
+
+// Remote control from Blynk app
+BLYNK_WRITE(V3) {  
+    int servoPos = param.asInt(); // Get slider value from Blynk (0-180)
+    servoMotor.write(servoPos);
+}
