@@ -9,8 +9,8 @@
 #include <BlynkSimpleEsp32.h>  // Include AFTER defining template details
 
 
-char ssid[] = "POCO M3 Pro 5G";  
-char pass[] = "11419821";  
+char ssid[] = "POCO M3 Pro 5G";  // Your wifi Name
+char pass[] = "11419821";   // Your wifi Password
 
 // Define pins
 #define SOUND_SENSOR 34  
@@ -70,3 +70,4 @@ BLYNK_WRITE(V3) {
     int servoPos = param.asInt(); // Get slider value from Blynk (0-180)
     servoMotor.write(servoPos);
 }
+
